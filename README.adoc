@@ -1,0 +1,111 @@
+= Database Update
+
+How to write the code of your app to allow doing A/B testing or/and continuous deployment.
+
+== Assumptions
+
+In order for the process to be relatively simple the following assumptions need to take place
+while developing the app:
+
+- use a database versioning tool (we'll be using https://flywaydb.org[Flyway])
+- the database changes need to be backwards compatible
+- if you want to do a backwards incompatible change you have to do it in a couple of deployments
+- we don't want to do DB rollbacks. Not doing them simplifies the deployment process (some rollbacks are close to impossible like rolling back a delete)
+- we want to ALWAYS be able to rollback the application one version back (not more)
+
+== The issue
+
+For readability we're versioning the apps with major increments.
+
+Why is this problem worth discussing? Doing A/B testing with Cloud Foundry is extremely simple - it's a matter of executing a single command. However it's not that trivial in terms of the application and the db.
+
+Let's take a look at the following example if you want to change the column name:
+
+WARNING: The following example is deliberately done in such a way that it will break. We're showing it to depict the problem of database compatibility.
+
+=== Changing the column name in backwards-incompatible way
+
+Let's assume that we have the DB in version `v1`. It has the column with a name `last_name`. We want to change it to `surname.` We have the app in version `1.0.0` which uses the `last_name` column in the code.
+
+==== Rolling a new backwards-incompatible version
+
+. in Flyway we're writing a script to change the column name from `last_name` to `surname`
+. we're writing our code to use the new `surname` column
+
+==== A/B testing
+
+The current situation is that we have an app deployed to production in version `1.0.0` and db in `v1`. We want to deploy the second instance of the app that will be in version `2.0.0` and update the db to `v2`.
+
+Steps:
+
+. a new instance is deployed in version `2.0.0` that updates the db to `v2`
+. in `v2` of the database the column `last_name` is no longer existing - it got changed to `surname`
+. the db and app upgrade is successful and you have some instances working in `1.0.0`, others in `2.0.0`. All are talking to db in `v2`
+. all instances of version `1.0.0` will start producing exceptions cause they will try to insert data to `last_name` column which is no longer there
+. all instances of version `2.0.0` will work without any issues
+
+As you can if we do backwards incompatible changes of the DB and the application, A/B testing is impossible.
+
+==== Rolling back the application
+
+Let's assume that after trying to do A/B deployment we've decided that we need to rollback the app back to version `1.0.0`. We assumed that we don't want to roll back the database.
+
+Steps:
+
+. we shut down the instance that was running with version `2.0.0`
+. the database is still in `v2`
+. since version `1.0.0` doesn't understand what `surname` column is it will produce exceptions
+. hell broke loose and we can't go back
+
+As you can if we do backwards incompatible changes of the DB and the application, we can't roll back to a previous version.
+
+== Proper database update flow
+
+INFO: Here we'll present a more sound approach to deployment
+
+=== Adding a new column
+
+This situation is quite simple. Let's assume that we have the DB in version `v1`. It doesn't have the column `surname`.
+We also have the app in version `1.0.0` which doesn't use the `surname` column.
+
+==== Rolling a new version
+
+Steps:
+
+. migrate your db to create the new column called `surname`. Now your db is in `v2`
+. write the code to use the new column. Now your app is in version `2.0.0`
+
+If you're using Spring Boot Flyway those two steps will be performed upon booting the version `2.0.0` of the app.  If you're running database versioning tool manually then you'd have to do it in separate processes (first manually upgrade the db version and then deploy the new app).
+
+==== A/B testing
+
+The current situation is that we have an app deployed to production in version `1.0.0` and db in `v1`. We want to deploy the second instance of the app that will be in version `2.0.0` and update the db to `v2`.
+
+Steps:
+
+. a new instance is deployed in version `2.0.0` that updates the db to `v2`
+. in the meantime some requests got processed by instances being in version `1.0.0`
+. the upgrade is successful and you have some instances working in `1.0.0`, others in `2.0.0`. All are talking to db in `v2`
+. version `1.0.0` is not using the database's column `surname` and version `2.0.0` is. They don't interfere each other, no exceptions should be thrown.
+
+==== Rolling back the application
+
+The current situation is that we have app in version `2.0.0` and db in `v2`.
+
+Steps:
+
+. roll back your app to version `1.0.0`.
+. version `1.0.0` is not using the database's column `surname` thus rollback should be successful
+
+== Projects
+
+We will focus on the most interesting case of changing the column name. That change is backwards
+incompatible but we'll try to write it in such a way that A/B testing is possible.
+
+[source,bash]
+-------
+├── boot-flyway-v1        - 1.0.0 version of the app with v1 of the schema
+├── boot-flyway-v2        - 2.0.0 version of the app with v2 of the schema (backwards-compatible - app can be rolled back)
+├── boot-flyway-v2-bad    - 2.0.0 version of the app with v2 of the schema (backwards-incompatible - app can't be rolled back)
+└── boot-flyway-v3        - 3.0.0. version of the app with v3 of the schema (app can be rolled back)
+-------
