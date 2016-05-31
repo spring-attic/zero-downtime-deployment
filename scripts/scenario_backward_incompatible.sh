@@ -42,7 +42,7 @@ echo -e "\nWaiting for the app 2.0.0.BAD to boot\n"
 curl_local_health_endpoint 9995
 
 echo -e "\nGenerate a person in version 1.0.0\n"
-(generate_person 9991) || echo -e "\n\n EXCEPTION OCCURRED WHILE TRYING TO GENERATE A PERSON. THAT'S BECAUSE THE APP IS BACKWARDS INCOMPATIBLE"
+(generate_person 9991) || echo -e "\n\n EXCEPTION OCCURRED WHILE TRYING TO GENERATE A PERSON. THAT'S BECAUSE THE APP IS BACKWARD INCOMPATIBLE"
 
 echo -e "\nGenerate a person in version 2.0.0.BAD\n"
-generate_person 9995 && echo -e "\n\n AND THIS PASSED CAUSE THIS VERSION OF THE APP INTRODUCED BACKWARDS INCOMPATBILE CHANGES"
+generate_person 9995 && echo -e "\n\n AND THIS PASSED CAUSE THIS VERSION OF THE APP INTRODUCED BACKWARD INCOMPATIBLE CHANGES"

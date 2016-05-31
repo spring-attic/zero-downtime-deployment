@@ -6,7 +6,7 @@ Version of the DB: `v2`
 
 ==== Comment
 
-By adding a new column and copying its contents we have created backwards compatible changes of the db. ATM if we
+By adding a new column and copying its contents we have created backward compatible changes of the db. ATM if we
 rollback the JAR / have an old JAR working at the same tame it won't break at runtime.
 
 ===== Rolling a new version
@@ -38,7 +38,7 @@ Steps:
 . the upgrade is successful and you have some instances working in `1.0.0`, others in `2.0.0`. All are talking to db in `v2`
 . version `1.0.0` is not using the database's column `surname` and version `2.0.0` is. They don't interfere each other, no exceptions
 should be thrown.
-. version `2.0.0` is saving data to both old and new column thus it's backwards compatible
+. version `2.0.0` is saving data to both old and new column thus it's backward compatible
 
 IMPORTANT: If you have any queries that count items basing on values from old / new column you have to remember that now you have
 duplicate values (most likely still being migrated). E.g. if you want to count the number of users whose last name (however you call it)
@@ -79,7 +79,8 @@ include::src/main/resources/db/migration/V2__Add_surname.sql[]
 ==== Code changes
 
 We are storing data in both `last_name` and `surname`. Also, we are reading from the `last_name` column cause
-it is most up to date (during the deployment process some entries could have been round-robined to the old instance).
+it is most up to date. During the deployment process some requests might have been processed by the instance that
+hasn't yet been upgraded.
 
 [source,java,indent=0]
 ----

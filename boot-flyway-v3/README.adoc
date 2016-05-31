@@ -6,7 +6,7 @@ Version of the DB: `v3`
 
 ==== Comment
 
-By adding a new column and copying its contents we have created backwards compatible changes of the db. ATM if we
+By adding a new column and copying its contents we have created backward compatible changes of the db. ATM if we
 rollback the JAR / have an old JAR working at the same time it won't break at runtime.
 
 ==== DB changes
@@ -22,7 +22,8 @@ include::src/main/resources/db/migration/V3__Final_migration.sql[]
 ==== Code changes
 
 We are storing data in both `last_name` and `surname`. Also, we are reading from the `last_name` column cause
-it is most up to date (during the deployment process some entries could have been round-robined to the old instance).
+it is most up to date. During the deployment process some requests might have been processed by the instance that
+hasn't yet been upgraded.
 
 [source,java,indent=0]
 ----

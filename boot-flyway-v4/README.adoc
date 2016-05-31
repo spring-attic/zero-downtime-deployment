@@ -6,7 +6,7 @@ Version of the DB: `v4`
 
 ==== Comment
 
-Since code of version `3.0.0` wasn't using `last_name` column, if we roll back to `3.0.0` after removing the
+Since the code of version `3.0.0` wasn't using `last_name` column, if we roll back to `3.0.0` after removing the
 column from the database then nothing bad will happen at runtime.
 
 
@@ -82,7 +82,7 @@ Sending a post to 127.0.0.1:9994/person. This is the response:
 
 ==== DB changes
 
-In comparison to `v3` we're just removing `last_name` column and add missing constraints.
+In comparison to `v3` we're just removing the `last_name` column and add missing constraints.
 
 [source,sql,indent=0]
 ----

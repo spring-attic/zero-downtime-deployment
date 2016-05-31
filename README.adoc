@@ -5,9 +5,9 @@
 This article will explain in depth how to tackle issues related to database compatibility and the deployment process.
 We will present what can happen with your production applications if you try to perform
 such a deployment unprepared. We will then walk through the steps in the lifecycle of an application that are necessary
-in order to have zero downtime. The result of our operations will be applying a backwards incompatible database change in a backwards compatible way.
+to have zero downtime. The result of our operations will be applying a backward incompatible database change in a backward compatible way.
 
-If you want to work though the code samples below, you will find everything you need in {repo_url}[GitHub].
+If you want to work through the code samples below, you will find everything you need in {repo_url}[GitHub].
 
 == Introduction
 
@@ -26,7 +26,7 @@ How can you achieve that? There are number of ways but one of them is just to:
 - once you see that version 2 works like a charm just bring down version 1
 - you're done!
 
-Easy, isn't it? Unfortunately it's not that easy and we'll focus on that later on. Right now let's check another
+Easy, isn't it? Unfortunately, it's not that easy and we'll focus on that later on. Right now let's check another
 common deployment process which is the blue green deployment.
 
 Have you ever heard of http://martinfowler.com/bliki/BlueGreenDeployment.html[blue green deployment]? With Cloud Foundry it's
@@ -58,12 +58,12 @@ Another variation would be to use the same database, making the blue-green switc
 Databases can often be a challenge with this technique, particularly when you need to change the schema to support a new version of the software.
 ____
 
-And here we arrive to the main problem that we will touch in this article. *The database*. Let's have another glimpse on this phrase:
+And here we arrive at the main problem that we will touch in this article. *The database*. Let's have another glimpse on this phrase:
 
 > migrate your database to a new version
 
-Now you should ask yourself a question - what if the database change is backwards incompatible? Won't my version 1 of the application
- just blow up? Actually it will...
+Now you should ask yourself a question - what if the database change is backward incompatible? Won't my version 1 of the application
+ just blow up? Actually, it will...
 
 So even though the benefits of zero downtime / blue green deployment are gigantic, companies tend to follow such a safer process
  of deploying their apps:
@@ -79,7 +79,7 @@ benefits of the zero downtime deployment.
 === Database issues
 
 If you have a stateless application that doesn't store any data in the database then you can start doing zero downtime deployment
-right now. Unfortunately most software has to store the data somewhere. That's why you have to think twice before doing any sort
+right now. Unfortunately, most software has to store the data somewhere. That's why you have to think twice before doing any sort
 of schema changes. Before we go into the details of how to change the schema in such a way that zero downtime deployment is possible
 let's focus on schema versioning first.
 
@@ -114,7 +114,7 @@ CREATE TABLE PERSON (
 insert into PERSON (first_name, last_name) values ('Dave', 'Syer');
 -----
 
-It's pretty self-explanatory: you can use SQL in order to define how your database should be changed. For more information about Spring Boot
+It's pretty self-explanatory: you can use SQL to define how your database should be changed. For more information about Spring Boot
 and Flyway http://docs.spring.io/spring-boot/docs/1.3.5.RELEASE/reference/html/howto-database-initialization.html#howto-execute-flyway-database-migrations-on-startup[check the Spring Boot Docs].
 
 Using a schema versioning tool with Spring Boot, you receive 2 great benefits.
@@ -126,12 +126,12 @@ Using a schema versioning tool with Spring Boot, you receive 2 great benefits.
 
 In the following section of the article we will focus on presenting two approaches to database changes.
 
-- backwards incompatible
-- backwards compatible
+- backward incompatible
+- backward compatible
 
-The first one will be shown as a warning to not try to do zero downtime deployment without some preparations.
+The first one will be shown as a warning to not to try to do zero downtime deployment without some preparations.
 The second one will present a suggested solution of how one can perform zero downtime deployment and maintain
-backwards compatibility at the same time.
+backward compatibility at the same time.
 
 Our project that we will work on will be a simple Spring Boot Flyway application in which we have a `Person`
 that has a `first_name` and a `last_name` in the database. We want to rename the `last_name` column into `surname`.
@@ -149,7 +149,7 @@ Not doing them simplifies the deployment process (some database rollbacks are cl
 We prefer to rollback only the applications. That way even if you have different databases (e.g. SQL and NoSQL) then your
 deployment pipeline will look the same.
 
-*We want to ALWAYS be able to rollback the application one version back (not more)*
+*We want ALWAYS to be able to rollback the application one version back (not more)*
 
 We want to rollback only as a necessity. If there is a bug in the current version that can't be solved easily we want to be
  able to bring back the last working version. We assume that this last working version is the previous one. Maintaining code and database
@@ -242,7 +242,7 @@ public class Person {
 }
 ----
 
-=== Renaming a column in backwards-incompatible way
+=== Renaming a column in backward-incompatible way
 
 Let's take a look at the following example if you want to change the column name:
 
@@ -273,7 +273,7 @@ in `v2bad`
 no longer there
 . all instances of version `2.0.0.BAD` will work without any issues
 
-As you can if we do backwards incompatible changes of the DB and the application, A/B testing is impossible.
+As you can if we do backward incompatible changes of the DB and the application, A/B testing is impossible.
 
 ===== Rolling back the application
 
@@ -287,13 +287,13 @@ Steps:
 . since version `1.0.0` doesn't understand what `surname` column is it will produce exceptions
 . hell broke loose and we can't go back
 
-As you can if we do backwards incompatible changes of the DB and the application, we can't roll back to a previous version.
+As you can if we do backward incompatible changes of the DB and the application, we can't roll back to a previous version.
 
 ===== Logs from script execution
 
 [source,bash]
 -----
-Backwards incompatible scenario:
+Backward incompatible scenario:
 
 01) Run 1.0.0
 02) Wait for the app (1.0.0) to boot
@@ -342,7 +342,7 @@ Script renaming `last_name`.
 
 [source,sql,indent=0]
 ----
--- This change is backwards incompatible - you can't do A/B testing
+-- This change is backward incompatible - you can't do A/B testing
 ALTER TABLE PERSON CHANGE last_name surname VARCHAR;
 ----
 
@@ -350,12 +350,12 @@ ALTER TABLE PERSON CHANGE last_name surname VARCHAR;
 
 We have changed the field name from `lastName` to `surname`.
 
-=== Renaming a column in backwards-compatible way
+=== Renaming a column in backward-compatible way
 
-This is the most frequent situation that we can encounter. We need to perform backwards incompatible changes. We have already
-proven that in order to do zero downtime deployment we must not simply apply the database migration without extra work. In this
-section of the article we will go through 3 deployments of the application together with the database migrations in order to achieve
-the desired effect and at the same time be backwards compatbile.
+This is the most frequent situation that we can encounter. We need to perform backward incompatible changes. We have already
+proven that to do zero downtime deployment we must not simply apply the database migration without extra work. In this
+section of the article we will go through 3 deployments of the application together with the database migrations to achieve
+the desired effect and at the same time be backward compatible.
 
 TIP: As a reminder - Let's assume that we have the DB in version `v1`. It contains the columns `first_name` and `last_name`.
 We want to change the `last_name` into `surname`. We also have the app in version `1.0.0` which doesn't use the `surname` column just yet.
@@ -368,7 +368,7 @@ Version of the DB: `v2`
 
 ==== Comment
 
-By adding a new column and copying its contents we have created backwards compatible changes of the db. ATM if we
+By adding a new column and copying its contents we have created backward compatible changes of the db. ATM if we
 rollback the JAR / have an old JAR working at the same tame it won't break at runtime.
 
 ===== Rolling a new version
@@ -400,7 +400,7 @@ Steps:
 . the upgrade is successful and you have some instances working in `1.0.0`, others in `2.0.0`. All are talking to db in `v2`
 . version `1.0.0` is not using the database's column `surname` and version `2.0.0` is. They don't interfere each other, no exceptions
 should be thrown.
-. version `2.0.0` is saving data to both old and new column thus it's backwards compatible
+. version `2.0.0` is saving data to both old and new column thus it's backward compatible
 
 IMPORTANT: If you have any queries that count items basing on values from old / new column you have to remember that now you have
 duplicate values (most likely still being migrated). E.g. if you want to count the number of users whose last name (however you call it)
@@ -452,7 +452,8 @@ UPDATE PERSON SET PERSON.surname = PERSON.last_name
 ==== Code changes
 
 We are storing data in both `last_name` and `surname`. Also, we are reading from the `last_name` column cause
-it is most up to date (during the deployment process some entries could have been round-robined to the old instance).
+it is most up to date. During the deployment process some requests might have been processed by the instance that
+hasn't yet been upgraded.
 
 [source,java,indent=0]
 ----
@@ -531,7 +532,7 @@ Version of the DB: `v3`
 
 ==== Comment
 
-By adding a new column and copying its contents we have created backwards compatible changes of the db. ATM if we
+By adding a new column and copying its contents we have created backward compatible changes of the db. ATM if we
 rollback the JAR / have an old JAR working at the same time it won't break at runtime.
 
 ==== DB changes
@@ -555,7 +556,8 @@ ALTER TABLE PERSON MODIFY COLUMN last_name varchar(255) NULL DEFAULT NULL;
 ==== Code changes
 
 We are storing data in both `last_name` and `surname`. Also, we are reading from the `last_name` column cause
-it is most up to date (during the deployment process some entries could have been round-robined to the old instance).
+it is most up to date. During the deployment process some requests might have been processed by the instance that
+hasn't yet been upgraded.
 
 [source,java,indent=0]
 ----
@@ -621,7 +623,7 @@ Version of the DB: `v4`
 
 ==== Comment
 
-Since code of version `3.0.0` wasn't using `last_name` column, if we roll back to `3.0.0` after removing the
+Since the code of version `3.0.0` wasn't using `last_name` column, if we roll back to `3.0.0` after removing the
 column from the database then nothing bad will happen at runtime.
 
 
@@ -697,7 +699,7 @@ Sending a post to 127.0.0.1:9994/person. This is the response:
 
 ==== DB changes
 
-In comparison to `v3` we're just removing `last_name` column and add missing constraints.
+In comparison to `v3` we're just removing the `last_name` column and add missing constraints.
 
 [source,sql,indent=0]
 ----
@@ -716,8 +718,8 @@ There are no code changes.
 
 === Recap
 
-We have successfully applied the backwards incompatible change of renaming the column by doing a couple of
- backwards compatible deploys. Here you can find the summary of the performed actions:
+We have successfully applied the backward incompatible change of renaming the column by doing a couple of
+ backward compatible deploys. Here you can find the summary of the performed actions:
 
 . deploy version `1.0.0` of the application with `v1` of db schema (column name = `last_name`)
 . deploy version `2.0.0` of the application that saves data to `last_name` and `surname` columns.
@@ -741,28 +743,28 @@ Once you clone the repo you'll see the following folder structure.
 [source,bash]
 -------
 ├── boot-flyway-v1              - 1.0.0 version of the app with v1 of the schema
-├── boot-flyway-v2              - 2.0.0 version of the app with v2 of the schema (backwards-compatible - app can be rolled back)
-├── boot-flyway-v2-bad          - 2.0.0.BAD version of the app with v2bad of the schema (backwards-incompatible - app cannot be rolled back)
+├── boot-flyway-v2              - 2.0.0 version of the app with v2 of the schema (backward-compatible - app can be rolled back)
+├── boot-flyway-v2-bad          - 2.0.0.BAD version of the app with v2bad of the schema (backward-incompatible - app cannot be rolled back)
 ├── boot-flyway-v3              - 3.0.0 version of the app with v3 of the schema (app can be rolled back)
 └── boot-flyway-v4              - 4.0.0 version of the app with v4 of the schema (app can be rolled back)
 -------
 
 === Scripts
 
-You can run the scripts to execute the scenario that show the backwards compatible and incompatible changes applied to the db.
+You can run the scripts to execute the scenario that shows the backward compatible and incompatible changes applied to the db.
 
-To check the *backwards compatible* case just run:
-
-[source,bash]
--------
-./scripts/scenario_backwards_compatible.sh
--------
-
-To check the *backwards incompatible* case just run:
+To check the *backward compatible* case just run:
 
 [source,bash]
 -------
-./scripts/scenario_backwards_incompatible.sh
+./scripts/scenario_backward_compatible.sh
+-------
+
+To check the *backward incompatible* case just run:
+
+[source,bash]
+-------
+./scripts/scenario_backward_incompatible.sh
 -------
 
 === Spring Boot Sample Flyway

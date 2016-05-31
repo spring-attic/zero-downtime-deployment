@@ -1,4 +1,4 @@
-=== Renaming a column in backwards-incompatible way
+=== Renaming a column in backward-incompatible way
 
 Let's take a look at the following example if you want to change the column name:
 
@@ -29,7 +29,7 @@ in `v2bad`
 no longer there
 . all instances of version `2.0.0.BAD` will work without any issues
 
-As you can if we do backwards incompatible changes of the DB and the application, A/B testing is impossible.
+As you can if we do backward incompatible changes of the DB and the application, A/B testing is impossible.
 
 ===== Rolling back the application
 
@@ -43,13 +43,13 @@ Steps:
 . since version `1.0.0` doesn't understand what `surname` column is it will produce exceptions
 . hell broke loose and we can't go back
 
-As you can if we do backwards incompatible changes of the DB and the application, we can't roll back to a previous version.
+As you can if we do backward incompatible changes of the DB and the application, we can't roll back to a previous version.
 
 ===== Logs from script execution
 
 [source,bash]
 -----
-Backwards incompatible scenario:
+Backward incompatible scenario:
 
 01) Run 1.0.0
 02) Wait for the app (1.0.0) to boot
