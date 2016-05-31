@@ -1,4 +1,4 @@
-:repo_url: https://github.com/marcingrzejszczak/database-update
+:repo_url: https://github.com/spring-cloud-samples/zero-downtime-deployment
 
 = Zero Downtime Deployment Database Issues
 
