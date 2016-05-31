@@ -14,3 +14,5 @@ else
     kill -9 $pid && echo "Killed the jar process with H2" || echo "There was no h2 process running"
     rm ${ROOT_FOLDER}/target/h2.pid
 fi
+
+pkill -f org.h2.tools.Console && "Killed the H2 console via pkill" || echo "No console was running"
