@@ -1,9 +1,100 @@
-== Spring Boot Flyway Sample
+=== Renaming a column in backwards-incompatible way
 
-This sample demonstrates the flyway auto-configuration support.
+Let's take a look at the following example if you want to change the column name:
 
-You can look at `http://localhost:8080/flyway` to review the list of scripts.
+WARNING: The following example is deliberately done in such a way that it will break. We're showing it to depict the problem of database
+compatibility.
 
-This sample also enables the H2 console (at `http://localhost:8080/h2-console`)
-so that you can review the state of the database (the default jdbc url is
-`jdbc:h2:mem:testdb`).
+Version of the app: `2.0.0.BAD`
+
+Version of the DB: `v2bad`
+
+==== Comment
+
+Current changes DO NOT allow us to run two instances (old and new) at the same time. Thus zero down time
+deployment will be difficult to achieve (if we take into consideration out assumptions it's actually impossible).
+
+===== A/B testing
+
+The current situation is that we have an app deployed to production in version `1.0.0` and db in `v1`. We want to deploy the second
+instance of the app that will be in version `2.0.0.BAD` and update the db to `v2bad`.
+
+Steps:
+
+. a new instance is deployed in version `2.0.0.BAD` that updates the db to `v2bad`
+. in `v2bad` of the database the column `last_name` is no longer existing - it got changed to `surname`
+. the db and app upgrade is successful and you have some instances working in `1.0.0`, others in `2.0.0.BAD`. All are talking to db
+in `v2bad`
+. all instances of version `1.0.0` will start producing exceptions cause they will try to insert data to `last_name` column which is
+no longer there
+. all instances of version `2.0.0.BAD` will work without any issues
+
+As you can if we do backwards incompatible changes of the DB and the application, A/B testing is impossible.
+
+===== Rolling back the application
+
+Let's assume that after trying to do A/B deployment we've decided that we need to rollback the app back to version `1.0.0`. We assumed
+that we don't want to roll back the database.
+
+Steps:
+
+. we shut down the instance that was running with version `2.0.0.BAD`
+. the database is still in `v2bad`
+. since version `1.0.0` doesn't understand what `surname` column is it will produce exceptions
+. hell broke loose and we can't go back
+
+As you can if we do backwards incompatible changes of the DB and the application, we can't roll back to a previous version.
+
+===== Logs from script execution
+
+[source,bash]
+-----
+Backwards incompatible scenario:
+
+01) Run 1.0.0
+02) Wait for the app (1.0.0) to boot
+03) Generate a person by calling POST localhost:9991/person to version 1.0.0
+04) Run 2.0.0.BAD
+05) Wait for the app (2.0.0.BAD) to boot
+06) Generate a person by calling POST localhost:9991/person to version 1.0.0 <-- this should fail
+07) Generate a person by calling POST localhost:9992/person to version 2.0.0.BAD <-- this should pass
+
+Starting app in version 1.0.0
+Generate a person in version 1.0.0
+Sending a post to 127.0.0.1:9991/person. This is the response:
+
+{"firstName":"b73f639f-e176-4463-bf26-1135aace2f57","lastName":"b73f639f-e176-4463-bf26-1135aace2f57"}
+
+Starting app in version 2.0.0.BAD
+Generate a person in version 1.0.0
+Sending a post to 127.0.0.1:9991/person. This is the response:
+
+curl: (22) The requested URL returned error: 500 Internal Server Error
+
+Generate a person in version 2.0.0.BAD
+Sending a post to 127.0.0.1:9995/person. This is the response:
+
+{"firstName":"e156be2e-06b6-4730-9c43-6e14cfcda125","surname":"e156be2e-06b6-4730-9c43-6e14cfcda125"}
+-----
+
+==== DB changes
+
+The migration script renames the column from `last_name` to `surname`
+
+Initial Flyway script:
+
+[source,sql,indent=0]
+----
+include::src/main/resources/db/migration/V1__init.sql[]
+----
+
+Script renaming `last_name`.
+
+[source,sql,indent=0]
+----
+include::src/main/resources/db/migration/V2__Rename_last_name.sql[]
+----
+
+==== Code changes
+
+We have changed the field name from `lastName` to `surname`.

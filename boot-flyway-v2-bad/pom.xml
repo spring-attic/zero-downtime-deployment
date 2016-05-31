@@ -7,8 +7,9 @@
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>1.3.3.RELEASE</version>
 	</parent>
-	<artifactId>spring-boot-sample-flyway</artifactId>
+	<artifactId>spring-boot-sample-flyway-v2-bad</artifactId>
 	<name>Spring Boot Flyway Sample</name>
+	<version>2.0.0.BAD-SNAPSHOT</version>
 	<description>Spring Boot Flyway Sample</description>
 	<url>http://projects.spring.io/spring-boot/</url>
 	<organization>

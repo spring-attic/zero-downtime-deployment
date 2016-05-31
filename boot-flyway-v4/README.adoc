@@ -1,0 +1,94 @@
+=== Step 4: Removing last name from db
+
+Version of the app: `4.0.0`
+
+Version of the DB: `v4`
+
+==== Comment
+
+Since code of version `3.0.0` wasn't using `last_name` column, if we roll back to `3.0.0` after removing the
+column from the database then nothing bad will happen at runtime.
+
+
+===== Logs from script execution
+
+[source,bash]
+-----
+We will do it in the following way:
+
+01) Run 1.0.0
+02) Wait for the app (1.0.0) to boot
+03) Generate a person by calling POST localhost:9991/person to version 1.0.0
+04) Run 2.0.0
+05) Wait for the app (2.0.0) to boot
+06) Generate a person by calling POST localhost:9991/person to version 1.0.0
+07) Generate a person by calling POST localhost:9992/person to version 2.0.0
+08) Kill app (1.0.0)
+09) Run 3.0.0
+10) Wait for the app (3.0.0) to boot
+11) Generate a person by calling POST localhost:9992/person to version 2.0.0
+12) Generate a person by calling POST localhost:9993/person to version 3.0.0
+13) Kill app (3.0.0)
+14) Run 4.0.0
+15) Wait for the app (4.0.0) to boot
+16) Generate a person by calling POST localhost:9993/person to version 3.0.0
+17) Generate a person by calling POST localhost:9994/person to version 4.0.0
+
+
+Starting app in version 1.0.0
+Generate a person in version 1.0.0
+Sending a post to 127.0.0.1:9991/person. This is the response:
+
+{"firstName":"52b6e125-4a5c-429b-a47a-ef18bbc639d2","lastName":"52b6e125-4a5c-429b-a47a-ef18bbc639d2"}
+
+Starting app in version 2.0.0
+
+Generate a person in version 1.0.0
+Sending a post to 127.0.0.1:9991/person. This is the response:
+
+{"firstName":"e41ee756-4fa7-4737-b832-e28827a00deb","lastName":"e41ee756-4fa7-4737-b832-e28827a00deb"}
+
+Generate a person in version 2.0.0
+Sending a post to 127.0.0.1:9992/person. This is the response:
+
+{"firstName":"0c1240f5-649a-4bc5-8aa9-cff855f3927f","lastName":"0c1240f5-649a-4bc5-8aa9-cff855f3927f","surname":"0c1240f5-649a-4bc5-8aa9-cff855f3927f"}
+
+Killing app 1.0.0
+
+Starting app in version 3.0.0
+
+Generate a person in version 2.0.0
+Sending a post to 127.0.0.1:9992/person. This is the response:
+{"firstName":"74d84a9e-5f44-43b8-907c-148c6d26a71b","lastName":"74d84a9e-5f44-43b8-907c-148c6d26a71b","surname":"74d84a9e-5f44-43b8-907c-148c6d26a71b"}
+
+Generate a person in version 3.0.0
+Sending a post to 127.0.0.1:9993/person. This is the response:
+{"firstName":"c6564dbe-9ab5-40ae-9077-8ae6668d5862","surname":"c6564dbe-9ab5-40ae-9077-8ae6668d5862"}
+
+Killing app 2.0.0
+
+Starting app in version 4.0.0
+
+Generate a person in version 3.0.0
+Sending a post to 127.0.0.1:9993/person. This is the response:
+
+{"firstName":"cbe942fc-832e-45e9-a838-0fae25c10a51","surname":"cbe942fc-832e-45e9-a838-0fae25c10a51"}
+
+Generate a person in version 4.0.0
+Sending a post to 127.0.0.1:9994/person. This is the response:
+
+{"firstName":"ff6857ce-9c41-413a-863e-358e2719bf88","surname":"ff6857ce-9c41-413a-863e-358e2719bf88"}
+-----
+
+==== DB changes
+
+In comparison to `v3` we're just removing `last_name` column and add missing constraints.
+
+[source,sql,indent=0]
+----
+include::src/main/resources/db/migration/V4__Remove_lastname.sql[]
+----
+
+==== Code changes
+
+There are no code changes.

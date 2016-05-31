@@ -1,9 +1,87 @@
-== Spring Boot Flyway Sample
+=== Step 2: Adding surname
 
-This sample demonstrates the flyway auto-configuration support.
+Version of the app: `2.0.0`
 
-You can look at `http://localhost:8080/flyway` to review the list of scripts.
+Version of the DB: `v2`
 
-This sample also enables the H2 console (at `http://localhost:8080/h2-console`)
-so that you can review the state of the database (the default jdbc url is
-`jdbc:h2:mem:testdb`).
+==== Comment
+
+By adding a new column and copying its contents we have created backwards compatible changes of the db. ATM if we
+rollback the JAR / have an old JAR working at the same tame it won't break at runtime.
+
+===== Rolling a new version
+
+Steps:
+
+. migrate your db to create the new column called `surname`. Now your db is in `v2`
+. copy the data from the `last_name` column to `surname`. *NOTE* that if you have a lot of this data then you should consider batch
+migration!
+. write the code to use *BOTH* the *new* and the *old* column. Now your app is in version `2.0.0`
+
+If you're using Spring Boot Flyway those two steps will be performed upon booting the version `2.0.0` of the app.  If you're running
+database versioning tool manually then you'd have to do it in separate processes (first manually upgrade the db version and then deploy
+the new app).
+
+IMPORTANT: Remember that the newly created column *MUST NOT* be *NOT NULL*. If you rollback, the old app has no knowledge of the new
+column and won't set it upon `Insert`. But if you add that constraint and your db is in `v2` it would require the value of the new
+column to be set. That would result in constraint violations.
+
+===== A/B testing
+
+The current situation is that we have an app deployed to production in version `1.0.0` and db in `v1`. We want to deploy the second
+instance of the app that will be in version `2.0.0` and update the db to `v2`.
+
+Steps:
+
+. a new instance is deployed in version `2.0.0` that updates the db to `v2`
+. in the meantime some requests got processed by instances being in version `1.0.0`
+. the upgrade is successful and you have some instances working in `1.0.0`, others in `2.0.0`. All are talking to db in `v2`
+. version `1.0.0` is not using the database's column `surname` and version `2.0.0` is. They don't interfere each other, no exceptions
+should be thrown.
+. version `2.0.0` is saving data to both old and new column thus it's backwards compatible
+
+IMPORTANT: If you have any queries that count items basing on values from old / new column you have to remember that now you have
+duplicate values (most likely still being migrated). E.g. if you want to count the number of users whose last name (however you call it)
+starts with a letter `A` then until the data migration (`old` -> `new` column) is done you might have inconsistent data if you
+perform the query against the new column.
+
+===== Rolling back the application
+
+The current situation is that we have app in version `2.0.0` and db in `v2`.
+
+Steps:
+
+. roll back your app to version `1.0.0`.
+. version `1.0.0` is not using the database's column `surname` thus rollback should be successful
+
+==== DB changes
+
+The db contains a column called `last_name`.
+
+Initial Flyway script:
+
+[source,sql,indent=0]
+----
+include::src/main/resources/db/migration/V1__init.sql[]
+----
+
+Script adding `surname` column.
+
+WARNING: Remember NOT TO ADD any NOT NULL constraints to the added column. Cause if you rollback the JAR
+ the old version doesn't have the notion of the added column and automatically a NULL value will be set. In case
+ of having a constraint the old application will blow up.
+
+[source,sql,indent=0]
+----
+include::src/main/resources/db/migration/V2__Add_surname.sql[]
+----
+
+==== Code changes
+
+We are storing data in both `last_name` and `surname`. Also, we are reading from the `last_name` column cause
+it is most up to date (during the deployment process some entries could have been round-robined to the old instance).
+
+[source,java,indent=0]
+----
+include::src/main/java/sample/flyway/Person.java[]
+----

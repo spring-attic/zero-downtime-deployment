@@ -25,18 +25,42 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(SampleFlywayApplication.class)
+@SpringApplicationConfiguration(SampleFlywayApplicationV2.class)
 public class SampleFlywayApplicationTests {
 
-	@Autowired
-	private JdbcTemplate template;
+	@Autowired private JdbcTemplate template;
+
+	@Autowired private PersonRepository personRepository;
+
+	@Autowired private PersonController personController;
 
 	@Test
 	public void testDefaultSettings() throws Exception {
 		assertEquals(new Integer(1), this.template
 				.queryForObject("SELECT COUNT(*) from PERSON", Integer.class));
+		Person person = personRepository.findAll().iterator().next();
+		assertEquals(person.getFirstName(), "Dave");
+		assertEquals(person.getLastName(), "Syer");
+		assertEquals(person.getSurname(), "Syer");
+	}
+
+	@Test
+	public void should_insert_into_both_columns() throws Exception {
+		personController.generatePerson();
+		personController.generatePerson();
+		personController.generatePerson();
+
+		Iterable<Person> persons = personRepository.findAll();
+
+		for (Person person : persons) {
+			assertNotNull(person.getFirstName());
+			assertNotNull(person.getLastName());
+			assertEquals(person.getLastName(), person.getSurname());
+		}
+
 	}
 
 }

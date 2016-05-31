@@ -1,9 +1,27 @@
-== Spring Boot Flyway Sample
+=== Step 1: Initial situation
 
-This sample demonstrates the flyway auto-configuration support.
+Version of the app: `1.0.0`
 
-You can look at `http://localhost:8080/flyway` to review the list of scripts.
+Version of the DB: `v1`
 
-This sample also enables the H2 console (at `http://localhost:8080/h2-console`)
-so that you can review the state of the database (the default jdbc url is
-`jdbc:h2:mem:testdb`).
+==== Comment
+
+This will be the initial state of the application that we will take into consideration.
+
+==== DB changes
+
+The db contains a column called `last_name`.
+
+[source,sql,indent=0]
+----
+include::src/main/resources/db/migration/V1__init.sql[]
+----
+
+==== Code changes
+
+The app stores the Person data into a column called `last_name`:
+
+[source,java,indent=0]
+----
+include::src/main/java/sample/flyway/Person.java[]
+----

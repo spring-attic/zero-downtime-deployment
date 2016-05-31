@@ -1,9 +1,30 @@
-== Spring Boot Flyway Sample
+=== Step 3: Removing last name from code
 
-This sample demonstrates the flyway auto-configuration support.
+Version of the app: `3.0.0`
 
-You can look at `http://localhost:8080/flyway` to review the list of scripts.
+Version of the DB: `v3`
 
-This sample also enables the H2 console (at `http://localhost:8080/h2-console`)
-so that you can review the state of the database (the default jdbc url is
-`jdbc:h2:mem:testdb`).
+==== Comment
+
+By adding a new column and copying its contents we have created backwards compatible changes of the db. ATM if we
+rollback the JAR / have an old JAR working at the same time it won't break at runtime.
+
+==== DB changes
+
+There are no structure changes in the DB. The following script is executed that performs the final migration of old data:
+
+[source,sql,indent=0]
+----
+include::src/main/resources/db/migration/V3__Final_migration.sql[]
+----
+
+
+==== Code changes
+
+We are storing data in both `last_name` and `surname`. Also, we are reading from the `last_name` column cause
+it is most up to date (during the deployment process some entries could have been round-robined to the old instance).
+
+[source,java,indent=0]
+----
+include::src/main/java/sample/flyway/Person.java[]
+----

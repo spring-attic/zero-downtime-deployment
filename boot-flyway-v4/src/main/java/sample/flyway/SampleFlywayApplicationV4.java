@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 the original author or authors.
+ * Copyright 2012-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class SampleFlywayApplication implements CommandLineRunner {
+public class SampleFlywayApplicationV4 implements CommandLineRunner {
 
 	@Autowired
 	private PersonRepository repository;
@@ -33,7 +33,7 @@ public class SampleFlywayApplication implements CommandLineRunner {
 	}
 
 	public static void main(String[] args) throws Exception {
-		SpringApplication.run(SampleFlywayApplication.class, args);
+		SpringApplication.run(SampleFlywayApplicationV4.class, args);
 	}
 
 }

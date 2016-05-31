@@ -9,6 +9,7 @@
 	</parent>
 	<artifactId>spring-boot-sample-flyway</artifactId>
 	<name>Spring Boot Flyway Sample</name>
+	<version>3.0.0</version>
 	<description>Spring Boot Flyway Sample</description>
 	<url>http://projects.spring.io/spring-boot/</url>
 	<organization>

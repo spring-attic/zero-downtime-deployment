@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 the original author or authors.
+ * Copyright 2012-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ public class Person {
 	@GeneratedValue
 	private Long id;
 	private String firstName;
-	private String lastName;
+	private String surname;
 
 	public String getFirstName() {
 		return this.firstName;
@@ -36,17 +36,17 @@ public class Person {
 		this.firstName = firstName;
 	}
 
-	public String getLastName() {
-		return this.lastName;
+	public String getSurname() {
+		return this.surname;
 	}
 
-	public void setLastName(String lastname) {
-		this.lastName = lastname;
+	public void setSurname(String lastname) {
+		this.surname = lastname;
 	}
 
 	@Override
 	public String toString() {
-		return "Person [firstName=" + this.firstName + ", lastName=" + this.lastName
+		return "Person [firstName=" + this.firstName + ", surname=" + this.surname
 				+ "]";
 	}
 }

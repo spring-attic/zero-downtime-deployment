@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 the original author or authors.
+ * Copyright 2012-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ public class Person {
 	private Long id;
 	private String firstName;
 	private String lastName;
+	private String surname;
 
 	public String getFirstName() {
 		return this.firstName;
@@ -40,13 +41,25 @@ public class Person {
 		return this.lastName;
 	}
 
-	public void setLastName(String lastname) {
-		this.lastName = lastname;
+	/**
+	 * Reading from the old column since it's most up to date. When there was a migration script ran
+	 * some entries were added to the old column.
+	 */
+	public String getSurname() {
+		return this.lastName;
+	}
+
+	/**
+	 * Storing both FIRST_NAME and SURNAME entries
+	 */
+	public void setSurname(String surname) {
+		this.lastName = surname;
+		this.surname = surname;
 	}
 
 	@Override
 	public String toString() {
-		return "Person [firstName=" + this.firstName + ", lastName=" + this.lastName
+		return "Person [firstName=" + this.firstName + ", lastName=" + this.lastName + ", surname=" + this.surname
 				+ "]";
 	}
 }

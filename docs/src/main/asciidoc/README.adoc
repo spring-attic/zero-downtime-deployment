@@ -1,0 +1,238 @@
+:repo_url: https://github.com/marcingrzejszczak/database-update
+
+= Zero Downtime Deployment Database Issues
+
+This article will explain in depth how to tackle issues related to database compatibility and the deployment process.
+We will present what can happen with your production applications if you try to perform
+such a deployment unprepared. We will then walk through the steps in the lifecycle of an application that are necessary
+in order to have zero downtime. The result of our operations will be applying a backwards incompatible database change in a backwards compatible way.
+
+If you want to work though the code samples below, you will find everything you need in {repo_url}[GitHub].
+
+== Introduction
+
+=== Zero downtime deployment
+
+What is this mythical *zero downtime deployment*? You can say that your application is deployed that way if you can
+successfully introduce a new version of your application to production without making the user see that the application
+went down in the meantime. From the user's and the company's point of view it's the best possible scenario of deployment
+since new features can be introduced and bugs can be eliminated without any outage.
+
+How can you achieve that? There are number of ways but one of them is just to:
+
+- deploy version 1 of your service
+- migrate your database to a new version
+- deploy version 2 of your service in parallel to the version 1
+- once you see that version 2 works like a charm just bring down version 1
+- you're done!
+
+Easy, isn't it? Unfortunately it's not that easy and we'll focus on that later on. Right now let's check another
+common deployment process which is the blue green deployment.
+
+Have you ever heard of http://martinfowler.com/bliki/BlueGreenDeployment.html[blue green deployment]? With Cloud Foundry it's
+ extremely easy to do. Just check out https://spring.io/blog/2014/04/04/project-sagan-zero-downtime-deployments[this article] where
+ we describe it in more depth. To quickly recap, doing blue green deployment is as simple as:
+
+[quote]
+____
+- maintain two copies of your production environment (“blue” and “green”);
+- route all traffic to the the blue environment by mapping production URLs to it;
+- deploy and test any changes to the application in the green environment;
+- “flip the switch” by mapping URLs onto green and unmapping them from blue.
+____
+
+Blue green deployment is an approach that gives you ease of introducing new features without the stress that
+something will completely blow up on production. That's due to the fact that even if that would be the case,
+you can easily rollback your router to point to a previous environment just by "flipping the switch".
+
+After reading all of the above you could ask yourself a question: _What does zero downtime deployment have to do with Blue green deployment?_
+
+Well, they have quite a lot in common since maintaining two copies of the same environment leads to doubling the effort
+required to support it. That's why some teams, as http://martinfowler.com/bliki/BlueGreenDeployment.html[Martin Fowler states it],
+tend to perform a variation of that approach:
+
+[quote]
+____
+Another variation would be to use the same database, making the blue-green switches for web and domain layers.
+
+Databases can often be a challenge with this technique, particularly when you need to change the schema to support a new version of the software.
+____
+
+And here we arrive to the main problem that we will touch in this article. *The database*. Let's have another glimpse on this phrase:
+
+> migrate your database to a new version
+
+Now you should ask yourself a question - what if the database change is backwards incompatible? Won't my version 1 of the application
+ just blow up? Actually it will...
+
+So even though the benefits of zero downtime / blue green deployment are gigantic, companies tend to follow such a safer process
+ of deploying their apps:
+
+- prepare a package with the new version of the application
+- shut down the running application
+- run the database migration scripts
+- deploy and run the new version of the application
+
+In this article we'll describe in more depth how you can work with your database and your code so that you can profit from the
+benefits of the zero downtime deployment.
+
+=== Database issues
+
+If you have a stateless application that doesn't store any data in the database then you can start doing zero downtime deployment
+right now. Unfortunately most software has to store the data somewhere. That's why you have to think twice before doing any sort
+of schema changes. Before we go into the details of how to change the schema in such a way that zero downtime deployment is possible
+let's focus on schema versioning first.
+
+==== Schema versioning
+
+In this article we will use http://flywaydb.org[Flyway] as a schema versioning tool. Naturally we're also writing a Spring Boot application
+that has native support for Flyway and will execute the schema migration upon application context setup. When using Flyway
+ you can store the migration scripts inside your projects folder (by default under `classpath:db/migration`). Here you can see an example
+ of such migration files
+
+[source,bash]
+------
+└── db
+ └── migration
+     ├── V1__init.sql
+     ├── V2__Add_surname.sql
+     ├── V3__Final_migration.sql
+     └── V4__Remove_lastname.sql
+------
+
+In this example we can see 4 migration scripts that, if not executed previously, will be executed one after another when the application
+starts. Let's take a look at one of the files (`V1__init.sql`) as an example.
+
+[source,sql]
+-----
+include::../../../../boot-flyway-v4/src/main/resources/db/migration/V1__init.sql[]
+-----
+
+It's pretty self-explanatory: you can use SQL in order to define how your database should be changed. For more information about Spring Boot
+and Flyway http://docs.spring.io/spring-boot/docs/1.3.5.RELEASE/reference/html/howto-database-initialization.html#howto-execute-flyway-database-migrations-on-startup[check the Spring Boot Docs].
+
+Using a schema versioning tool with Spring Boot, you receive 2 great benefits.
+
+- you decouple database changes from the code changes
+- database migration happens together with your application deployment - your deployment process gets simplified
+
+== Solving the database issue
+
+In the following section of the article we will focus on presenting two approaches to database changes.
+
+- backwards incompatible
+- backwards compatible
+
+The first one will be shown as a warning to not try to do zero downtime deployment without some preparations.
+The second one will present a suggested solution of how one can perform zero downtime deployment and maintain
+backwards compatibility at the same time.
+
+Our project that we will work on will be a simple Spring Boot Flyway application in which we have a `Person`
+that has a `first_name` and a `last_name` in the database. We want to rename the `last_name` column into `surname`.
+
+=== Assumptions
+
+Before we go into details we need to define a couple of assumptions towards our applications. The key result that we
+would like to obtain is to have a fairly simple process.
+
+TIP: Business PRO-TIP. Simplifying processes can save you a lot of money on support (the more people work in your company the more money you can save)!
+
+*We don't want to do database rollbacks*
+
+Not doing them simplifies the deployment process (some database rollbacks are close to impossible like rolling back a delete).
+We prefer to rollback only the applications. That way even if you have different databases (e.g. SQL and NoSQL) then your
+deployment pipeline will look the same.
+
+*We want to ALWAYS be able to rollback the application one version back (not more)*
+
+We want to rollback only as a necessity. If there is a bug in the current version that can't be solved easily we want to be
+ able to bring back the last working version. We assume that this last working version is the previous one. Maintaining code and database
+ compatibility for more than a single deployment would be extremely difficult and costly.
+
+TIP: For readability purposes we will be versioning the applications in this article with major increments.
+
+include::../../../../boot-flyway-v1/README.adoc[]
+
+include::../../../../boot-flyway-v2-bad/README.adoc[]
+
+=== Renaming a column in backwards-compatible way
+
+This is the most frequent situation that we can encounter. We need to perform backwards incompatible changes. We have already
+proven that in order to do zero downtime deployment we must not simply apply the database migration without extra work. In this
+section of the article we will go through 3 deployments of the application together with the database migrations in order to achieve
+the desired effect and at the same time be backwards compatbile.
+
+TIP: As a reminder - Let's assume that we have the DB in version `v1`. It contains the columns `first_name` and `last_name`.
+We want to change the `last_name` into `surname`. We also have the app in version `1.0.0` which doesn't use the `surname` column just yet.
+
+include::../../../../boot-flyway-v2/README.adoc[]
+
+include::../../../../boot-flyway-v3/README.adoc[]
+
+include::../../../../boot-flyway-v4/README.adoc[]
+
+=== Recap
+
+We have successfully applied the backwards incompatible change of renaming the column by doing a couple of
+ backwards compatible deploys. Here you can find the summary of the performed actions:
+
+. deploy version `1.0.0` of the application with `v1` of db schema (column name = `last_name`)
+. deploy version `2.0.0` of the application that saves data to `last_name` and `surname` columns.
+The app reads from `last_name` column. Db is in version `v2` containing both `last_name` and `surname` columns. The `surname` column is
+a copy of the `last_name` column. (NOTE: this column must not have the not null constraint)
+. deploy version `3.0.0` of the application that saves data only to `surname` and reads from `surname`. As for the db the final
+migration of `last_name` to `surname` takes place. Also the *NOT NULL* constraint is dropped from `last_name`. Db is now in version `v3`
+. deploy version `4.0.0` of the application - there are no changes in the code. Deploy db in `v4` that first
+preforms a final migration of `last_name` to `surname` and removes the `last_name` column. Here you can add any missing constraints
+
+By following this approach you can always rollback one version back without breaking the database / application compatibility.
+
+== Code
+
+All the code used in this article is available at {repo_url}[Github]. Below you can find some additional description.
+
+=== Projects
+
+Once you clone the repo you'll see the following folder structure.
+
+[source,bash]
+-------
+├── boot-flyway-v1              - 1.0.0 version of the app with v1 of the schema
+├── boot-flyway-v2              - 2.0.0 version of the app with v2 of the schema (backwards-compatible - app can be rolled back)
+├── boot-flyway-v2-bad          - 2.0.0.BAD version of the app with v2bad of the schema (backwards-incompatible - app cannot be rolled back)
+├── boot-flyway-v3              - 3.0.0 version of the app with v3 of the schema (app can be rolled back)
+└── boot-flyway-v4              - 4.0.0 version of the app with v4 of the schema (app can be rolled back)
+-------
+
+=== Scripts
+
+You can run the scripts to execute the scenario that show the backwards compatible and incompatible changes applied to the db.
+
+To check the *backwards compatible* case just run:
+
+[source,bash]
+-------
+./scripts/scenario_backwards_compatible.sh
+-------
+
+To check the *backwards incompatible* case just run:
+
+[source,bash]
+-------
+./scripts/scenario_backwards_incompatible.sh
+-------
+
+=== Spring Boot Sample Flyway
+
+All samples are clones of the `Spring Boot Sample Flyway` project.
+
+You can look at `http://localhost:8080/flyway` to review the list of scripts.
+
+The sample also enables the H2 console (at `http://localhost:8080/h2-console`)
+so that you can review the state of the database (the default jdbc url is
+`jdbc:h2:mem:testdb`).
+
+== Additional Reading
+
+- http://databaserefactoring.com[Database Refactoring patterns]
+- http://martinfowler.com/bliki/ContinuousDelivery.html[Continuous Delivery]
