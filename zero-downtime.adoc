@@ -105,7 +105,7 @@ starts. Let's take a look at one of the files (`V1__init.sql`) as an example.
 
 [source,sql]
 -----
-include::../../../../boot-flyway-v4/src/main/resources/db/migration/V1__init.sql[]
+include::boot-flyway-v4/src/main/resources/db/migration/V1__init.sql[]
 -----
 
 It's pretty self-explanatory: you can use SQL in order to define how your database should be changed. For more information about Spring Boot
@@ -151,9 +151,9 @@ We want to rollback only as a necessity. If there is a bug in the current versio
 
 TIP: For readability purposes we will be versioning the applications in this article with major increments.
 
-include::../../../../boot-flyway-v1/README.adoc[]
+include::boot-flyway-v1/README.adoc[]
 
-include::../../../../boot-flyway-v2-bad/README.adoc[]
+include::boot-flyway-v2-bad/README.adoc[]
 
 === Renaming a column in backwards-compatible way
 
@@ -165,11 +165,11 @@ the desired effect and at the same time be backwards compatbile.
 TIP: As a reminder - Let's assume that we have the DB in version `v1`. It contains the columns `first_name` and `last_name`.
 We want to change the `last_name` into `surname`. We also have the app in version `1.0.0` which doesn't use the `surname` column just yet.
 
-include::../../../../boot-flyway-v2/README.adoc[]
+include::boot-flyway-v2/README.adoc[]
 
-include::../../../../boot-flyway-v3/README.adoc[]
+include::boot-flyway-v3/README.adoc[]
 
-include::../../../../boot-flyway-v4/README.adoc[]
+include::boot-flyway-v4/README.adoc[]
 
 === Recap
 

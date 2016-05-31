@@ -1,3 +1,4 @@
 #!/usr/bin/env bash
 
-./mvnw clean install -DskipTests -Pdocs -T 4
+# ensure that bundle install was executed
+ruby coalesce_readme.rb

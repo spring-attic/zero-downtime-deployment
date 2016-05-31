@@ -22,7 +22,6 @@
     </parent>
 
     <modules>
-        <module>docs</module>
         <module>boot-flyway-v1</module>
         <module>boot-flyway-v2</module>
         <module>boot-flyway-v2-bad</module>
