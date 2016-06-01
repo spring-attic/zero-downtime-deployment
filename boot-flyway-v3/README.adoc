@@ -9,6 +9,18 @@ Version of the DB: `v3`
 By adding a new column and copying its contents we have created backward compatible changes of the db. ATM if we
 rollback the JAR / have an old JAR working at the same time it won't break at runtime.
 
+
+===== Rolling back the application
+
+The current situation is that we have app in version `3.0.0` and db in `v3`. Version `3.0.0` is not storing data
+into the `last_name` column. That means that most up to date information is stored in the `surname` column.
+
+Steps:
+
+. roll back your app to version `2.0.0`.
+. version `2.0.0` is using both `last_name` and `surname` column.
+. version `2.0.0` will pick first `surname` column if it's not null and if that's not the case then it will pick `last_name`
+
 ==== DB changes
 
 There are no structure changes in the DB. The following script is executed that performs the final migration of old data:
@@ -17,7 +29,6 @@ There are no structure changes in the DB. The following script is executed that 
 ----
 include::src/main/resources/db/migration/V3__Final_migration.sql[]
 ----
-
 
 ==== Code changes
 

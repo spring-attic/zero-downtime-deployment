@@ -37,16 +37,21 @@ public class Person {
 		this.firstName = firstName;
 	}
 
-	public String getLastName() {
-		return this.lastName;
-	}
-
 	/**
-	 * Reading from the old column since it's most up to date. When there was a migration script ran
-	 * some entries were added to the old column.
+	 * Reading from the new column if it's set. If not the from the old one.
+	 *
+	 * When migrating from version 1.0.0 -> 2.0.0 this can lead to a possibility that some data in
+	 * the surname column is not up to date (during the migration process lastName could have been updated).
+	 * In this case one can run yet another migration script after all applications have been deployed in the
+	 * new version to ensure that the surname field is updated.
+	 *
+	 * However it makes sense since when looking at the migration from 2.0.0 -> 3.0.0. In 3.0.0 we no longer
+	 * have a notion of lastName at all - so we don't update that column. If we rollback from 3.0.0 -> 2.0.0 if we
+	 * would be reading from lastName, then we would have very old data (since not a single datum was inserted
+	 * to lastName in version 3.0.0).
 	 */
 	public String getSurname() {
-		return this.lastName;
+		return this.surname != null ? this.surname : this.lastName;
 	}
 
 	/**

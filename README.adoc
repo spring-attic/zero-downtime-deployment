@@ -379,6 +379,8 @@ Steps:
 . copy the data from the `last_name` column to `surname`. *NOTE* that if you have a lot of this data then you should consider batch
 migration!
 . write the code to use *BOTH* the *new* and the *old* column. Now your app is in version `2.0.0`
+. read the surname value from `surname` column if it's not null and from `last_name` if `surname` wasn't set.
+You can remove the `getLastName()` from the code since it will produce nulls when your app is rolled back from `3.0.0` to `2.0.0`.
 
 If you're using Spring Boot Flyway those two steps will be performed upon booting the version `2.0.0` of the app.  If you're running
 database versioning tool manually then you'd have to do it in separate processes (first manually upgrade the db version and then deploy
@@ -387,6 +389,10 @@ the new app).
 IMPORTANT: Remember that the newly created column *MUST NOT* be *NOT NULL*. If you rollback, the old app has no knowledge of the new
 column and won't set it upon `Insert`. But if you add that constraint and your db is in `v2` it would require the value of the new
 column to be set. That would result in constraint violations.
+
+IMPORTANT: You should remove the `getLastName()` method because in version `3.0.0` there is no notion of `last_name` column in the code.
+ That means that nulls will be set there. You can leave the method and add null-checks but a much better solution would be to ensure
+ that in the logic of `getSurname()` you pick the proper, non-null value.
 
 ===== A/B testing
 
@@ -496,16 +502,21 @@ public class Person {
 		this.firstName = firstName;
 	}
 
-	public String getLastName() {
-		return this.lastName;
-	}
-
 	/**
-	 * Reading from the old column since it's most up to date. When there was a migration script ran
-	 * some entries were added to the old column.
+	 * Reading from the new column if it's set. If not the from the old one.
+	 *
+	 * When migrating from version 1.0.0 -> 2.0.0 this can lead to a possibility that some data in
+	 * the surname column is not up to date (during the migration process lastName could have been updated).
+	 * In this case one can run yet another migration script after all applications have been deployed in the
+	 * new version to ensure that the surname field is updated.
+	 *
+	 * However it makes sense since when looking at the migration from 2.0.0 -> 3.0.0. In 3.0.0 we no longer
+	 * have a notion of lastName at all - so we don't update that column. If we rollback from 3.0.0 -> 2.0.0 if we
+	 * would be reading from lastName, then we would have very old data (since not a single datum was inserted
+	 * to lastName in version 3.0.0).
 	 */
 	public String getSurname() {
-		return this.lastName;
+		return this.surname != null ? this.surname : this.lastName;
 	}
 
 	/**
@@ -535,6 +546,18 @@ Version of the DB: `v3`
 By adding a new column and copying its contents we have created backward compatible changes of the db. ATM if we
 rollback the JAR / have an old JAR working at the same time it won't break at runtime.
 
+
+===== Rolling back the application
+
+The current situation is that we have app in version `3.0.0` and db in `v3`. Version `3.0.0` is not storing data
+into the `last_name` column. That means that most up to date information is stored in the `surname` column.
+
+Steps:
+
+. roll back your app to version `2.0.0`.
+. version `2.0.0` is using both `last_name` and `surname` column.
+. version `2.0.0` will pick first `surname` column if it's not null and if that's not the case then it will pick `last_name`
+
 ==== DB changes
 
 There are no structure changes in the DB. The following script is executed that performs the final migration of old data:
@@ -551,7 +574,6 @@ UPDATE PERSON SET PERSON.surname = PERSON.last_name;
 -- WITH A NOT_NULL CONSTRAINT.
 ALTER TABLE PERSON MODIFY COLUMN last_name varchar(255) NULL DEFAULT NULL;
 ----
-
 
 ==== Code changes
 
