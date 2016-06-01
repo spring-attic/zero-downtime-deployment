@@ -645,7 +645,7 @@ We will do it in the following way:
 10) Wait for the app (3.0.0) to boot
 11) Generate a person by calling POST localhost:9992/person to version 2.0.0
 12) Generate a person by calling POST localhost:9993/person to version 3.0.0
-13) Kill app (3.0.0)
+13) Kill app (2.0.0)
 14) Run 4.0.0
 15) Wait for the app (4.0.0) to boot
 16) Generate a person by calling POST localhost:9993/person to version 3.0.0
