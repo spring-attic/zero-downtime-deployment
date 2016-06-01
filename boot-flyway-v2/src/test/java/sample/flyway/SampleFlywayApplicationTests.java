@@ -18,7 +18,6 @@ package sample.flyway;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -43,7 +42,6 @@ public class SampleFlywayApplicationTests {
 				.queryForObject("SELECT COUNT(*) from PERSON", Integer.class));
 		Person person = personRepository.findAll().iterator().next();
 		assertEquals(person.getFirstName(), "Dave");
-		assertEquals(person.getLastName(), "Syer");
 		assertEquals(person.getSurname(), "Syer");
 	}
 
@@ -57,8 +55,9 @@ public class SampleFlywayApplicationTests {
 
 		for (Person person : persons) {
 			assertNotNull(person.getFirstName());
-			assertNotNull(person.getLastName());
-			assertEquals(person.getLastName(), person.getSurname());
+			String lastName = this.template
+					.queryForObject("SELECT last_name from PERSON where PERSON.first_name=?", new String[] {person.getFirstName()}, String.class);
+			assertEquals(lastName, person.getSurname());
 		}
 
 	}
