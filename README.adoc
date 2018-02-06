@@ -382,7 +382,7 @@ migration!
 . read the surname value from `surname` column if it's not null and from `last_name` if `surname` wasn't set.
 You can remove the `getLastName()` from the code since it will produce nulls when your app is rolled back from `3.0.0` to `2.0.0`.
 
-If you're using Spring Boot Flyway those two steps will be performed upon booting the version `2.0.0` of the app.  If you're running
+If you're using Spring Boot Flyway first two steps will be performed upon booting the version `2.0.0` of the app.  If you're running
 database versioning tool manually then you'd have to do it in separate processes (first manually upgrade the db version and then deploy
 the new app).
 
