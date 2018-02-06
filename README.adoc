@@ -404,7 +404,7 @@ Steps:
 . a new instance is deployed in version `2.0.0` that updates the db to `v2`
 . in the meantime some requests got processed by instances being in version `1.0.0`
 . the upgrade is successful and you have some instances working in `1.0.0`, others in `2.0.0`. All are talking to db in `v2`
-. version `1.0.0` is not using the database's column `surname` and version `2.0.0` is. They don't interfere each other, no exceptions
+. version `1.0.0` is not using the database's column `surname` and version `2.0.0` is. They don't interfere with each other, no exceptions
 should be thrown.
 . version `2.0.0` is saving data to both old and new column thus it's backward compatible
 
