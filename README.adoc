@@ -256,7 +256,7 @@ Version of the DB: `v2bad`
 ==== Comment
 
 Current changes DO NOT allow us to run two instances (old and new) at the same time. Thus zero down time
-deployment will be difficult to achieve (if we take into consideration out assumptions it's actually impossible).
+deployment will be difficult to achieve (if we take into consideration our assumptions it's actually impossible).
 
 ===== A/B testing
 
@@ -273,7 +273,7 @@ in `v2bad`
 no longer there
 . all instances of version `2.0.0.BAD` will work without any issues
 
-As you can if we do backward incompatible changes of the DB and the application, A/B testing is impossible.
+As you can see if we do backward incompatible changes of the DB and the application, A/B testing is impossible.
 
 ===== Rolling back the application
 
@@ -287,7 +287,7 @@ Steps:
 . since version `1.0.0` doesn't understand what `surname` column is it will produce exceptions
 . hell broke loose and we can't go back
 
-As you can if we do backward incompatible changes of the DB and the application, we can't roll back to a previous version.
+As you can see if we do backward incompatible changes of the DB and the application, we can't roll back to a previous version.
 
 ===== Logs from script execution
 
@@ -382,7 +382,7 @@ migration!
 . read the surname value from `surname` column if it's not null and from `last_name` if `surname` wasn't set.
 You can remove the `getLastName()` from the code since it will produce nulls when your app is rolled back from `3.0.0` to `2.0.0`.
 
-If you're using Spring Boot Flyway those two steps will be performed upon booting the version `2.0.0` of the app.  If you're running
+If you're using Spring Boot Flyway first two steps will be performed upon booting the version `2.0.0` of the app.  If you're running
 database versioning tool manually then you'd have to do it in separate processes (first manually upgrade the db version and then deploy
 the new app).
 
@@ -404,7 +404,7 @@ Steps:
 . a new instance is deployed in version `2.0.0` that updates the db to `v2`
 . in the meantime some requests got processed by instances being in version `1.0.0`
 . the upgrade is successful and you have some instances working in `1.0.0`, others in `2.0.0`. All are talking to db in `v2`
-. version `1.0.0` is not using the database's column `surname` and version `2.0.0` is. They don't interfere each other, no exceptions
+. version `1.0.0` is not using the database's column `surname` and version `2.0.0` is. They don't interfere with each other, no exceptions
 should be thrown.
 . version `2.0.0` is saving data to both old and new column thus it's backward compatible
 
