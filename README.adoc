@@ -369,7 +369,7 @@ Version of the DB: `v2`
 ==== Comment
 
 By adding a new column and copying its contents we have created backward compatible changes of the db. ATM if we
-rollback the JAR / have an old JAR working at the same tame it won't break at runtime.
+rollback the JAR / have an old JAR working at the same time it won't break at runtime.
 
 ===== Rolling a new version
 
