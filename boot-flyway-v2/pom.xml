@@ -11,10 +11,10 @@
 	<name>Spring Boot Flyway Sample</name>
 	<version>2.0.0-SNAPSHOT</version>
 	<description>Spring Boot Flyway Sample</description>
-	<url>http://projects.spring.io/spring-boot/</url>
+	<url>https://projects.spring.io/spring-boot/</url>
 	<organization>
 		<name>Pivotal Software, Inc.</name>
-		<url>http://www.spring.io</url>
+		<url>https://www.spring.io</url>
 	</organization>
 	<properties>
 		<main.basedir>${basedir}/../..</main.basedir>
