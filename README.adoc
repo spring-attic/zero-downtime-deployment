@@ -29,7 +29,7 @@ How can you achieve that? There are number of ways but one of them is just to:
 Easy, isn't it? Unfortunately, it's not that easy and we'll focus on that later on. Right now let's check another
 common deployment process which is the blue green deployment.
 
-Have you ever heard of http://martinfowler.com/bliki/BlueGreenDeployment.html[blue green deployment]? With Cloud Foundry it's
+Have you ever heard of https://martinfowler.com/bliki/BlueGreenDeployment.html[blue green deployment]? With Cloud Foundry it's
  extremely easy to do. Just check out https://spring.io/blog/2014/04/04/project-sagan-zero-downtime-deployments[this article] where
  we describe it in more depth. To quickly recap, doing blue green deployment is as simple as:
 
@@ -48,7 +48,7 @@ you can easily rollback your router to point to a previous environment just by "
 After reading all of the above you could ask yourself a question: _What does zero downtime deployment have to do with Blue green deployment?_
 
 Well, they have quite a lot in common since maintaining two copies of the same environment leads to doubling the effort
-required to support it. That's why some teams, as http://martinfowler.com/bliki/BlueGreenDeployment.html[Martin Fowler states it],
+required to support it. That's why some teams, as https://martinfowler.com/bliki/BlueGreenDeployment.html[Martin Fowler states it],
 tend to perform a variation of that approach:
 
 [quote]
@@ -85,7 +85,7 @@ let's focus on schema versioning first.
 
 ==== Schema versioning
 
-In this article we will use http://flywaydb.org[Flyway] as a schema versioning tool. Naturally we're also writing a Spring Boot application
+In this article we will use https://flywaydb.org[Flyway] as a schema versioning tool. Naturally we're also writing a Spring Boot application
 that has native support for Flyway and will execute the schema migration upon application context setup. When using Flyway
  you can store the migration scripts inside your projects folder (by default under `classpath:db/migration`). Here you can see an example
  of such migration files
@@ -115,7 +115,7 @@ insert into PERSON (first_name, last_name) values ('Dave', 'Syer');
 -----
 
 It's pretty self-explanatory: you can use SQL to define how your database should be changed. For more information about Spring Boot
-and Flyway http://docs.spring.io/spring-boot/docs/1.3.5.RELEASE/reference/html/howto-database-initialization.html#howto-execute-flyway-database-migrations-on-startup[check the Spring Boot Docs].
+and Flyway https://docs.spring.io/spring-boot/docs/1.3.5.RELEASE/reference/html/howto-database-initialization.html#howto-execute-flyway-database-migrations-on-startup[check the Spring Boot Docs].
 
 Using a schema versioning tool with Spring Boot, you receive 2 great benefits.
 
@@ -801,5 +801,5 @@ so that you can review the state of the database (the default jdbc url is
 
 == Additional Reading
 
-- http://databaserefactoring.com[Database Refactoring patterns]
-- http://martinfowler.com/bliki/ContinuousDelivery.html[Continuous Delivery]
+- https://databaserefactoring.com[Database Refactoring patterns]
+- https://martinfowler.com/bliki/ContinuousDelivery.html[Continuous Delivery]
