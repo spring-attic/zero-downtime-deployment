@@ -1,3 +1,5 @@
+# zero-downtime-deployment is no longer actively maintained by VMware, Inc.
+
 :repo_url: https://github.com/spring-cloud-samples/zero-downtime-deployment
 
 = Zero Downtime Deployment Database Issues
